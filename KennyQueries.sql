@@ -19,3 +19,23 @@ GROUP BY
   event_type
 ORDER BY
   event_count DESC;
+
+
+
+--Top 10 tornadoes with the longest length of the path in miles in descending order.
+
+SELECT
+  storm_time,
+  state_abbreviation,
+  magnitude,
+  length,              -- Length of the tornado path in miles
+  width,               -- Width in feet
+  injured_count,
+  fatality_count,
+FROM
+  `bigquery-public-data.noaa_historic_severe_storms.tornado_paths`
+WHERE
+  length IS NOT NULL
+ORDER BY
+  length DESC
+LIMIT 10;
