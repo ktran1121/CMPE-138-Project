@@ -23,6 +23,7 @@ ORDER BY
 
 
 --Top 10 tornadoes with the longest length of the path in miles in descending order.
+--This query will process 2.8 MB when run.
 
 SELECT
   storm_time,
@@ -39,3 +40,31 @@ WHERE
 ORDER BY
   length DESC
 LIMIT 10;
+
+
+--Top 10 tornadoes with the highest fatality count in descending order.
+--This query will process 2.8 MB when run.
+
+SELECT
+  storm_time,
+  state_abbreviation,
+  magnitude,
+  length,
+  width,
+  injured_count,
+  fatality_count,
+FROM
+  `bigquery-public-data.noaa_historic_severe_storms.tornado_paths`
+WHERE
+  fatality_count IS NOT NULL
+ORDER BY
+  fatality_count DESC
+LIMIT 10;
+
+
+
+
+
+
+
+
