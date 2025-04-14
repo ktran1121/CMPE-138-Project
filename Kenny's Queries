@@ -1,0 +1,21 @@
+--Kenny Khoi Tran
+--Unoptimized Queries
+-- Count how many times each event type occurred and calculate the total number of direct and indirect injuries and deaths, along with total property and crop damage. 
+--The results are grouped by event type and sorted by the number of events in descending order.
+--Unoptimized: This query will process 5 MB when run.
+
+SELECT
+  event_type,
+  COUNT(*) AS event_count,
+  SUM(IFNULL(injuries_direct, 0)) AS total_injuries_direct,
+  SUM(IFNULL(injuries_indirect, 0)) AS total_injuries_indirect,
+  SUM(IFNULL(deaths_direct, 0)) AS total_deaths_direct,
+  SUM(IFNULL(deaths_indirect, 0)) AS total_deaths_indirect,
+  SUM(IFNULL(damage_property, 0)) AS total_property_damage,
+  SUM(IFNULL(damage_crops, 0)) AS total_crop_damage
+FROM
+  `bigquery-public-data.noaa_historic_severe_storms.storms_2024`
+GROUP BY
+  event_type
+ORDER BY
+  event_count DESC;
