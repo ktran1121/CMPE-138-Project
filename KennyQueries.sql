@@ -1,6 +1,5 @@
 --Kenny Khoi Tran
 
-
 --Unoptimized Queries
 
 --Query 1:
@@ -25,7 +24,7 @@ ORDER BY
   event_count DESC;
 
 
---Query 2:
+--Query 6:
 --Top 10 tornadoes with the longest length of the path in miles in descending order.
 --This query will process 2.8 MB when run.
 
@@ -46,7 +45,7 @@ ORDER BY
 LIMIT 10;
 
 
---Query 3:
+--Query 7:
 --Top 10 tornadoes with the highest fatality count in descending order.
 --This query will process 2.8 MB when run.
 
@@ -68,7 +67,7 @@ LIMIT 10;
 
 
 
---Query 4:
+--Query 8:
 --Top 10 states with the highest recorded size of hail in descending order.
 --This query will process 321.6 KB when run.
 
