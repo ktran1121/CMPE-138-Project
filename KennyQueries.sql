@@ -119,7 +119,7 @@ LIMIT 10;
 --Query 5:
 --Top 10 highest wind speeds from the wind_reports table in 2019 and joins them with related storm events from the storms_2019 table.
 --Only includes storm events categorized as 'thunderstorm wind', 'high wind', or 'strong wind'. 
---The query groups results by location and wind speed to avoid duplicates, then returns details like timestamp, wind speed, location, event type, and property damage. 
+--Returns timestamp, wind speed, location, event type, and property damage. 
 --Uses LEFT JOIN to include values from the wind reports table that do not match with the storms table.
 
 --This query will process 4.53 MB when run.
