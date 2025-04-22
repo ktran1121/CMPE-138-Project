@@ -1,7 +1,7 @@
 -- Jin Chen 
 -- Unoptimized Queries
 -- This query shows the Top 10 states with the Total Amount of casulaties by doing direct + indirect injuries/deaths 
--- from 2010 - 2024. 
+-- from 2023 - 2024. 
 -- Changing to distinct so it counts the events and casualties once.
 -- Results will have the event_count and total_casualties which is UNIQUE so there are no duplicates of deaths or injuries
 -- or duplicates of event_id. The total_casualties will be the sum of schemas from storms 2022-2024 in respect to the state.
