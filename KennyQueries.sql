@@ -5,7 +5,7 @@
 --Query 1:
 -- Count how many times each event type occurred and calculate the total number of direct and indirect injuries and deaths, along with total property and crop damage. 
 --The results are grouped by event type and sorted by the number of events in descending order.
---This query will process 5 MB when run.
+--This query will process 5.2 MB when run.
 
 SELECT
   event_type,
