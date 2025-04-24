@@ -28,3 +28,29 @@ ORDER BY
   total_casualties DESC
 LIMIT
   10;
+
+-- Query 2 
+-- Question: Find the average hailstone size for each county from 2010-2024 and how many distinct hail events happened at those counties?
+-- Show the top 10 counties where the hail was largest on average.
+-- This Query will find the top counties across all the states that will have the largest average hailstone size
+-- over the years of 2010 - 2024, and it will show how many distinct hail-reporting timestamps each of those counties logged.
+-- Bytes processed 105.78 KB
+-- Bytes billed 10 MB
+
+SELECT state, county, 
+  AVG(size)/100                         AS avg_hail_size_in_inches, -- dividing by 100 so we get the actual inches instead of raw data
+    -- hailstone diameter size in inches
+  COUNT(DISTINCT timestamp)         AS hail_event_count -- This is assuming that no two separate hail events in the same county 
+                                                        -- share the same exact timestamp
+FROM            
+  `bigquery-public-data.noaa_historic_severe_storms.hail_reports`  
+WHERE
+  EXTRACT(YEAR FROM timestamp) BETWEEN 2010 AND 2024 -- we are extracting the YEARS from the timestamp 2010 and 2024
+  AND size IS NOT NULL -- It will exclude any rows where the hail size wasn't recorded so we only use REAL measurements.
+GROUP BY
+  state, county  -- Groups all the filtered rows by each unique state and county combination
+ORDER BY
+  avg_hail_size_in_inches DESC 
+LIMIT
+  10;
+
