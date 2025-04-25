@@ -2,216 +2,122 @@
 
 --Unoptimized Queries
 
---Query 1:
--- Count how many times each event type occurred and calculate the total number of direct and indirect injuries and deaths, along with total property and crop damage. 
---The results are grouped by event type and sorted by the number of events in descending order.
---This query will process 5.2 MB when run.
+--First Query
+--Show products that have a low stock of less than ten and have not been sold yet.
+--This query will process 11.15 MB when run.
 
 SELECT
-  event_type,
-  COUNT(*) AS event_count,
-  SUM(IFNULL(injuries_direct, 0)) AS total_injuries_direct,
-  SUM(IFNULL(injuries_indirect, 0)) AS total_injuries_indirect,
-  SUM(IFNULL(deaths_direct, 0)) AS total_deaths_direct,
-  SUM(IFNULL(deaths_indirect, 0)) AS total_deaths_indirect,
-  SUM(IFNULL(damage_property, 0)) AS total_property_damage,
-  SUM(IFNULL(damage_crops, 0)) AS total_crop_damage
+  p.id AS product_id,
+  p.name AS product_name,
+  p.category AS product_category,
+  p.brand  AS product_brand,
+  COUNT(*) AS current_stock,
+  MIN(inv.created_at) AS first_stock_date,
 FROM
-  `bigquery-public-data.noaa_historic_severe_storms.storms_2024`
-GROUP BY
-  event_type
-ORDER BY
-  event_count DESC;
-
-
---Query 2:
---Top 10 states and event type combinations with the highest total number of severe storm events across 2023 and 2024 in descending order. 
---This query will process 4.8 MB when run. Elapsed time: 18 sec
-
-SELECT
-  s23.state,
-  s23.event_type,
-  s23.state_fips_code,
-  COUNT(DISTINCT s23.event_id) AS event_count_2023,
-  COUNT(DISTINCT s24.event_id) AS event_count_2024,
-  COUNT(DISTINCT s23.event_id) + COUNT(DISTINCT s24.event_id) AS total_event_count
-FROM
-  `bigquery-public-data.noaa_historic_severe_storms.storms_2023` s23
+  `bigquery-public-data.thelook_ecommerce.inventory_items` AS inv
 JOIN
-  `bigquery-public-data.noaa_historic_severe_storms.storms_2024` s24
-ON
-  s23.state_fips_code = s24.state_fips_code
-  AND s23.event_type = s24.event_type
+  `bigquery-public-data.thelook_ecommerce.products`       AS p
+  ON inv.product_id = p.id
 WHERE
-  s23.state_fips_code IS NOT NULL
+  inv.sold_at IS NULL 
 GROUP BY
-  s23.state, s23.state_fips_code, s23.event_type
+  p.id, p.name, p.category, p.brand
+HAVING
+  current_stock < 10                
 ORDER BY
-  total_event_count DESC
-LIMIT 10;
+  current_stock ASC;
 
 
+--Second Query
+--Counts how many items were sold in each season and month, ordered by units sold in descending order.
+--This query will process 4.67 MB when run.
 
---Query 3:
---Top 100 tornado events from 2017 by fatality count, removing exact duplicates using DISTINCT. 
---Joins storm event data with tornado path data based on state FIPS codes and event dates, filtering only for 'tornado' events. 
---The result includes property damage costs, crop damage costs, injuries, fatalities, magnitude, and size of the tornado. 
---Sorted by fatality count in descending order.
-
---This query will process 7.39 MB when run.
-
-SELECT DISTINCT
-  s.event_id,
-  s.state,
-  DATE(s.event_begin_time) AS event_date,
-  t.storm_date,
-  t.storm_time,
-  s.damage_property,
-  s.damage_crops,
-  t.magnitude AS tornado_magnitude,
-  t.injured_count,
-  t.fatality_count,
-  t.length,
-  t.width
+SELECT
+  CASE
+    WHEN EXTRACT(MONTH FROM o.created_at) IN (12, 1, 2) THEN 'Winter'
+    WHEN EXTRACT(MONTH FROM o.created_at) IN (3, 4, 5)  THEN 'Spring'
+    WHEN EXTRACT(MONTH FROM o.created_at) IN (6, 7, 8)  THEN 'Summer'
+    ELSE 'Fall'
+  END                                          AS season,
+  EXTRACT(MONTH FROM o.created_at)             AS month,
+  COUNT(oi.id)                                 AS units_sold
 FROM
-  `bigquery-public-data.noaa_historic_severe_storms.storms_2017` s
+  `bigquery-public-data.thelook_ecommerce.order_items` AS oi
 JOIN
-  `bigquery-public-data.noaa_historic_severe_storms.tornado_paths` t
-ON
-  s.state_fips_code = t.state_fips_code
-  AND DATE(s.event_begin_time) = t.storm_date
-WHERE
-  LOWER(s.event_type) = 'tornado'
-ORDER BY
-  t.fatality_count DESC
-  LIMIT 100;
-
-
-
---Query 4:
---Top 10 highest recorded sizes of hail in descending order.
---This query will process 3.42 MB when run.
-SELECT
-  MIN(h.timestamp) AS hail_time,
-  MIN(s.event_id) AS event_id,
-  h.state AS hail_state,
-  h.county,
-  h.location,
-  h.size / 100.0 AS hail_size_inches,
-  s.damage_property AS damage_property
-FROM
-  `bigquery-public-data.noaa_historic_severe_storms.hail_reports` h
-LEFT JOIN
-  `bigquery-public-data.noaa_historic_severe_storms.storms_2021` s
-ON
-  LOWER(h.state) = LOWER(s.state)
-  AND DATE(h.timestamp) = DATE(s.event_begin_time)
-  AND LOWER(s.event_type) = 'hail'
-WHERE
-  h.size IS NOT NULL
+  `bigquery-public-data.thelook_ecommerce.orders`      AS o
+  ON oi.order_id = o.order_id
 GROUP BY
-  h.state, h.county, h.location, hail_size_inches, damage_property
+  season,
+  month
 ORDER BY
-  hail_size_inches DESC
-LIMIT 10;
+  units_sold DESC;
 
 
---Query 5:
---Top 10 highest wind speeds from the wind_reports table in 2019 and joins them with related storm events from the storms_2019 table.
---Only includes storm events categorized as 'thunderstorm wind', 'high wind', or 'strong wind'. 
---Returns timestamp, wind speed, location, event type, and property damage. 
---Uses LEFT JOIN to include values from the wind reports table that do not match with the storms table.
-
---This query will process 4.53 MB when run.
+--Third Query
+--Count how many unique users in each U.S. state have placed an order for products by the brand “Under Armour.” 
+--Top 10 states with the highest number of such customers in descending order.
+--This script will process 8.03 MB when run.
 
 SELECT
-  MIN(w.timestamp) AS wind_time,
-  s.event_type,
-  w.state AS wind_state,
-  w.county,
-  w.location,
-  w.speed AS wind_speed_mph,
-  MIN(s.event_id) AS event_id,
-  s.damage_property
+  u.state,
+  COUNT(DISTINCT u.id) AS number_of_customers
 FROM
-  `bigquery-public-data.noaa_historic_severe_storms.wind_reports` w
-LEFT JOIN
-  `bigquery-public-data.noaa_historic_severe_storms.storms_2019` s
-ON
-  LOWER(w.state) = LOWER(s.state)
-  AND DATE(w.timestamp) = DATE(s.event_begin_time)
-  AND LOWER(s.event_type) IN ('thunderstorm wind', 'high wind', 'strong wind')
+  `bigquery-public-data.thelook_ecommerce.users` AS u
+JOIN
+  `bigquery-public-data.thelook_ecommerce.orders`      AS o
+  ON u.id = o.user_id
+JOIN
+  `bigquery-public-data.thelook_ecommerce.order_items` AS oi
+  ON o.order_id = oi.order_id
+JOIN
+  `bigquery-public-data.thelook_ecommerce.products`    AS p
+  ON oi.product_id = p.id
 WHERE
-  w.speed IS NOT NULL
+  p.brand = "Under Armour"
+  AND u.country = 'United States'
+  AND u.state IS NOT NULL          
 GROUP BY
-  w.state, w.county, w.location, wind_speed_mph, s.damage_property, s.event_type
+  u.state
 ORDER BY
-  wind_speed_mph DESC
+  number_of_customers DESC
 LIMIT 10;
 
 
---Query 6:
---Top 10 tornadoes with the longest length of the path in miles in descending order.
---This query will process 2.8 MB when run.
+--Fourth Query (Unoptimized)
+--Top 20 best-selling products in the “Active” category by total items sold in descending order. 
+--This query will process 6.1 MB when run.
+--Elapsed Times in ms:
+--(397 + 521 + 499 + 344 + 434)/5 = 439 ms (Average run time)
 
 SELECT
-  storm_time,
-  state_abbreviation,
-  magnitude,
-  length,              -- Length of the tornado path in miles
-  width,               -- Width in feet
-  injured_count,
-  fatality_count,
+  oi.product_id,
+  p.category,
+  p.name AS product_name,
+  ROUND(SUM(oi.sale_price), 2) AS total_sales,
+  COUNT(oi.id) AS total_items_sold
 FROM
-  `bigquery-public-data.noaa_historic_severe_storms.tornado_paths`
+  `bigquery-public-data.thelook_ecommerce.order_items` AS oi
+JOIN
+  `bigquery-public-data.thelook_ecommerce.products` AS p
+  ON oi.product_id = p.id
 WHERE
-  length IS NOT NULL
-ORDER BY
-  length DESC
-LIMIT 10;
-
-
---Query 7:
---Top 10 tornadoes with the highest fatality count in descending order.
---This query will process 2.8 MB when run.
-
-SELECT
-  storm_time,
-  state_abbreviation,
-  magnitude,
-  length,
-  width,
-  injured_count,
-  fatality_count,
-FROM
-  `bigquery-public-data.noaa_historic_severe_storms.tornado_paths`
-WHERE
-  fatality_count IS NOT NULL
-ORDER BY
-  fatality_count DESC
-LIMIT 10;
-
-
---Query 8:
---Top 10 states with the highest recorded size of hail in descending order.
---This query will process 321.6 KB when run.
-
-SELECT
-  MIN(h.timestamp) AS hail_timestamp,
-  h.state,
-  h.county,
-  h.location,
-  h.size / 100.0 AS hail_size_inches,  --Size in 1/100 of an Inch (175 = 1.75in)
-  STRING_AGG(h.comments, ' | ') AS all_comments  -- Concatenate all comments for the event since there are duplicate events with different comments
-FROM
-  `bigquery-public-data.noaa_historic_severe_storms.hail_reports` h
-WHERE
-  h.size IS NOT NULL
+  p.category = "Active"
 GROUP BY
-  h.state, h.county, h.location, hail_size_inches
+  oi.product_id, p.name, p.category
 ORDER BY
-  hail_size_inches DESC
-LIMIT 10;
+  total_items_sold DESC,
+  total_sales DESC  
+LIMIT 20;
+
+
+
+
+
+
+
+
+
+
 
 
 
