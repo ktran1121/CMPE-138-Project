@@ -54,3 +54,45 @@ ORDER BY
 LIMIT
   10;
 
+-- New Datset thelook_ecommerce
+-- This query will find which product category will generate the most sales revenue and the total units sold
+-- It will join the order items with the product which will sum up sales by category and count the units then limit to 10.
+SELECT -- going to optimize this query because the output are only 2 columns and we are here we are trying to scan every column
+      -- in order items and product but the output is only 2 columns such as the most sales rev and total units sold
+  p.category                  AS product_category,
+  ROUND(SUM(ori.sale_price), 2) AS total_sales_revenue, -- rounding the decimal to 2 decimal places  
+  COUNT(ori.id)                AS total_units_sold
+FROM
+  `bigquery-public-data.thelook_ecommerce.order_items` AS ori
+JOIN
+  `bigquery-public-data.thelook_ecommerce.products`   AS p
+  ON ori.product_id = p.id
+GROUP BY
+  p.category
+ORDER BY
+  total_sales_revenue DESC
+LIMIT
+  10;
+-- Query 2 for new dataset
+-- This query will find which users on the platform has placed the most orders overall and find only the top 10
+-- It will join the orders table with the users table and counts the order per user then return top 10
+SELECT
+  o.user_id,   
+  u.first_name, -- retrieve the users first name from users table
+  u.last_name, -- same but last name
+  COUNT(o.order_id)           AS total_orders -- will count how many orders each user has placed
+FROM
+  `bigquery-public-data.thelook_ecommerce.orders` AS o  
+JOIN
+  `bigquery-public-data.thelook_ecommerce.users`  AS u
+  ON o.user_id = u.id
+GROUP BY
+  o.user_id, u.first_name, u.last_name
+ORDER BY
+  total_orders DESC
+LIMIT
+  10;
+
+-- Optimized query 1 
+
+
