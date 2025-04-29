@@ -27,7 +27,7 @@ JOIN `bigquery-public-data.thelook_ecommerce.order_items` oi
 GROUP BY u.age
 ORDER BY u.age
 
---Optimized Query #1
+--Optimized query #1
 
 WITH product_sales AS (
   SELECT
@@ -50,3 +50,31 @@ JOIN `bigquery-public-data.thelook_ecommerce.products` p
   ON ps.product_id = p.id
 GROUP BY 1, 2  -- Added grouping for non-aggregated columns
 ORDER BY sales_day DESC
+
+
+--Optimized query #2
+WITH user_orders AS (
+  SELECT
+    user_id,
+    SUM(sale_price) AS lifetime_value,
+    COUNT(DISTINCT order_id) AS orders_count
+  FROM `bigquery-public-data.thelook_ecommerce.order_items`
+  WHERE status NOT IN ('Cancelled','Returned')
+  GROUP BY 1
+)
+
+SELECT
+  CASE
+    WHEN u.age < 18 THEN 'Under 18'
+    WHEN u.age BETWEEN 18 AND 25 THEN '18-25'
+    WHEN u.age BETWEEN 26 AND 35 THEN '26-35' 
+    ELSE '35+'
+  END AS age_group,
+  COUNT(DISTINCT u.id) AS total_customers,
+  AVG(lo.lifetime_value) AS avg_ltv,
+  SUM(lo.lifetime_value) AS cohort_value
+FROM `bigquery-public-data.thelook_ecommerce.users` u
+JOIN user_orders lo
+  ON u.id = lo.user_id  -- Explicit join condition
+GROUP BY 1
+ORDER BY MIN(u.age)
