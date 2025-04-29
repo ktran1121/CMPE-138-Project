@@ -109,7 +109,7 @@ ORDER BY
   total_sales DESC  
 LIMIT 20;
 
-Query 5:
+--Fifth Query:
 --Top 20 best-selling products in the “Active” category by total items sold in descending order. (Optimized)
 --(388 + 326 + 360 + 330 + 321)/5 = 345 ms
 --This query will process 4.75 MB when run.
@@ -143,8 +143,7 @@ GROUP BY
 ORDER BY
   total_items_sold DESC,
   total_sales DESC
-LIMIT
-  20;
+LIMIT 20;
 
 
 
