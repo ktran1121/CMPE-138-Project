@@ -47,6 +47,6 @@ SELECT
   SUM(ps.daily_orders) AS total_orders
 FROM product_sales ps
 JOIN `bigquery-public-data.thelook_ecommerce.products` p
-  USING(product_id)
-GROUP BY 1, 2
+  ON ps.product_id = p.id
+GROUP BY 1, 2  -- Added grouping for non-aggregated columns
 ORDER BY sales_day DESC
