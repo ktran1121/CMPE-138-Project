@@ -39,7 +39,7 @@ LIMIT
   20;
 
 -- Jin
--- Bytes processed 3.32 MB  (394 + 387 + 383 + 449 + 365)/5 = 395.6 ms
+-- Bytes processed 3.32 MB  (394 + 387 + 383 + 449 + 365)/5 = 395.6 ms (Optimized)       (357 + 360 + 393 + 357 + 321)/5 = 357.6 (Unoptimized)
 -- Bytes billed 20 MB
 -- Slot milliseconds 340
 -- This query is an optimized version from query 1 
