@@ -109,7 +109,42 @@ ORDER BY
   total_sales DESC  
 LIMIT 20;
 
+Query 5:
+--Top 20 best-selling products in the “Active” category by total items sold in descending order. (Optimized)
+--(388 + 326 + 360 + 330 + 321)/5 = 345 ms
+--This query will process 4.75 MB when run.
 
+WITH active_sales AS (
+  SELECT
+    oi.product_id,
+    p.category,
+    p.name AS product_name,
+    oi.sale_price
+  FROM
+    `bigquery-public-data.thelook_ecommerce.products` AS p
+  JOIN
+    `bigquery-public-data.thelook_ecommerce.order_items` AS oi
+    ON p.id = oi.product_id
+  WHERE
+    p.category = "Active"
+)
+SELECT
+  product_id,
+  category,
+  product_name,
+  ROUND(SUM(sale_price), 2) AS total_sales,
+  COUNT(*) AS total_items_sold
+FROM
+  active_sales
+GROUP BY
+  product_id,
+  category,
+  product_name
+ORDER BY
+  total_items_sold DESC,
+  total_sales DESC
+LIMIT
+  20;
 
 
 
