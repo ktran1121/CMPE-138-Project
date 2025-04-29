@@ -33,7 +33,7 @@ WITH product_sales AS (
   SELECT
     oi.product_id,
     DATE_TRUNC(oi.created_at, DAY) AS sales_day,
-    ROUND(SUM(oi.sale_price),2) AS daily_sales,
+    SUM(oi.sale_price) AS daily_sales,
     COUNT(DISTINCT oi.order_id) AS daily_orders
   FROM `bigquery-public-data.thelook_ecommerce.order_items` oi
   WHERE oi.status NOT IN ('Cancelled','Returned')
@@ -43,8 +43,8 @@ WITH product_sales AS (
 SELECT
   ps.sales_day,
   p.category,
-  ROUND(SUM(ps.daily_sales),2) AS total_sales,
-  ROUND(SUM(ps.daily_orders),2) AS total_orders
+  SUM(ps.daily_sales) AS total_sales,
+  SUM(ps.daily_orders) AS total_orders
 FROM product_sales ps
 JOIN `bigquery-public-data.thelook_ecommerce.products` p
   USING(product_id)
