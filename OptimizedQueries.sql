@@ -10,10 +10,10 @@ WITH active_sales AS (
   SELECT
     oi.product_id,
     p.category,
-    p.name          AS product_name,
+    p.name AS product_name,
     oi.sale_price
   FROM
-    `bigquery-public-data.thelook_ecommerce.products`   AS p
+    `bigquery-public-data.thelook_ecommerce.products` AS p
   JOIN
     `bigquery-public-data.thelook_ecommerce.order_items` AS oi
     ON p.id = oi.product_id
@@ -25,7 +25,7 @@ SELECT
   category,
   product_name,
   ROUND(SUM(sale_price), 2) AS total_sales,
-  COUNT(1)              AS total_items_sold
+  COUNT(*) AS total_items_sold
 FROM
   active_sales
 GROUP BY
@@ -34,7 +34,7 @@ GROUP BY
   product_name
 ORDER BY
   total_items_sold DESC,
-  total_sales      DESC
+  total_sales DESC
 LIMIT
   20;
 
