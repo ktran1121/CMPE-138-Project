@@ -3,7 +3,7 @@
 
 --Top 20 best-selling products in the “Active” category by total items sold in descending order. (Optimized)
 --Kenny Khoi Tran
---(415 + 395 + 474 + 392 + 399)/5 = 415 ms
+--(388 + 326 + 360 + 330 + 321)/5 = 345 ms
 --This query will process 4.75 MB when run.
 
 WITH active_sales AS (
@@ -39,7 +39,7 @@ LIMIT
   20;
 
 -- Jin
--- Bytes processed 3.32 MB
+-- Bytes processed 3.32 MB  (394 + 387 + 383 + 449 + 365)/5 = 395.6 ms
 -- Bytes billed 20 MB
 -- Slot milliseconds 340
 -- This query is an optimized version from query 1 
