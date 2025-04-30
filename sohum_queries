@@ -29,52 +29,25 @@ ORDER BY u.age
 
 --Optimized query #1
 
-WITH product_sales AS (
+WITH order_data AS (
   SELECT
-    oi.product_id,
-    DATE_TRUNC(oi.created_at, DAY) AS sales_day,
-    SUM(oi.sale_price) AS daily_sales,
-    COUNT(DISTINCT oi.order_id) AS daily_orders
-  FROM `bigquery-public-data.thelook_ecommerce.order_items` oi
-  WHERE oi.status NOT IN ('Cancelled','Returned')
-  GROUP BY 1, 2
-)
-
-SELECT
-  ps.sales_day,
-  p.category,
-  SUM(ps.daily_sales) AS total_sales,
-  SUM(ps.daily_orders) AS total_orders
-FROM product_sales ps
-JOIN `bigquery-public-data.thelook_ecommerce.products` p
-  ON ps.product_id = p.id
-GROUP BY 1, 2  -- Added grouping for non-aggregated columns
-ORDER BY sales_day DESC
-
-
---Optimized query #2
-WITH user_orders AS (
-  SELECT
-    user_id,
-    SUM(sale_price) AS lifetime_value,
-    COUNT(DISTINCT order_id) AS orders_count
+    product_id,
+    DATE(created_at) AS sales_date,
+    sale_price,
+    order_id
   FROM `bigquery-public-data.thelook_ecommerce.order_items`
-  WHERE status NOT IN ('Cancelled','Returned')
-  GROUP BY 1
 )
 
 SELECT
-  CASE
-    WHEN u.age < 18 THEN 'Under 18'
-    WHEN u.age BETWEEN 18 AND 25 THEN '18-25'
-    WHEN u.age BETWEEN 26 AND 35 THEN '26-35' 
-    ELSE '35+'
-  END AS age_group,
-  COUNT(DISTINCT u.id) AS total_customers,
-  AVG(lo.lifetime_value) AS avg_ltv,
-  SUM(lo.lifetime_value) AS cohort_value
-FROM `bigquery-public-data.thelook_ecommerce.users` u
-JOIN user_orders lo
-  ON u.id = lo.user_id  -- Explicit join condition
-GROUP BY 1
-ORDER BY MIN(u.age)
+  od.sales_date,
+  p.category,
+  ROUND(SUM(od.sale_price), 2) AS total_sales,
+  COUNT(DISTINCT od.order_id) AS orders
+FROM order_data od
+JOIN `bigquery-public-data.thelook_ecommerce.products` p 
+  ON od.product_id = p.id
+GROUP BY 1, 2
+ORDER BY sales_date DESC
+
+
+
