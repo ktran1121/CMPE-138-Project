@@ -6,11 +6,16 @@
 SELECT
   DATE(oi.created_at) AS sales_date,
   p.category,
-  ROUND(SUM(oi.sale_price),2) AS total_sales,
+  ROUND(SUM(oi.sale_price), 2) AS total_sales,
   COUNT(DISTINCT oi.order_id) AS orders
 FROM `bigquery-public-data.thelook_ecommerce.order_items` oi
-JOIN `bigquery-public-data.thelook_ecommerce.products` p
-  ON oi.product_id = p.id
+JOIN (
+  SELECT id, category
+  FROM `bigquery-public-data.thelook_ecommerce.products`
+  WHERE category IN ('Apparel', 'Accessories')  -- Only top categories
+) p ON oi.product_id = p.id
+WHERE oi.status NOT IN ('Cancelled','Returned')
+  AND oi.created_at BETWEEN '2023-12-01' AND '2023-12-31'  -- Only one month
 GROUP BY 1, 2
 ORDER BY sales_date DESC
 
@@ -48,6 +53,7 @@ JOIN `bigquery-public-data.thelook_ecommerce.products` p
   ON od.product_id = p.id
 GROUP BY 1, 2
 ORDER BY sales_date DESC
+
 
 
 
