@@ -66,4 +66,26 @@ ORDER BY
 LIMIT
   10;
 
---add more later
+--Sohum 
+--4.71 (Optimized) 6.11(Unoptimized)
+--1 ms
+
+WITH active_sales AS (
+  SELECT
+    p.category,
+    p.name AS product_name,
+    oi.sale_price,
+    oi.created_at
+  FROM bigquery-public-data.thelook_ecommerce.order_items AS oi
+  JOIN bigquery-public-data.thelook_ecommerce.products AS p
+    ON oi.product_id = p.id
+)
+
+SELECT
+  DATE(created_at) AS sales_date,
+  category,
+  ROUND(SUM(sale_price), 2) AS total_sales,
+  COUNT(*) AS total_items_sold
+FROM active_sales
+GROUP BY sales_date, category
+ORDER BY sales_date DESC;
