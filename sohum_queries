@@ -30,6 +30,7 @@ GROUP BY u.age
 ORDER BY u.age
 
 --Optimized query #1
+--4.72 MB compared to the 6.11 MB from before
 
 WITH active_sales AS (
   SELECT
